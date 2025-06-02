@@ -20,7 +20,7 @@ module RubyChess
   def play
     until @game_over
       display_board
-      puts "#{@current_player.capitalize}'s turn. Enter your move (e.g. 'e2 e4' or 'O-O' for castling):"
+      puts "#{@current_player.capitalize}'s turn. Enter your move ('e2 e4' or 'O-O' for castling or 'O-O-O' for large castling):"
       input = gets.chomp
       
       if input.downcase == 'quit'
@@ -36,7 +36,7 @@ module RubyChess
           puts "Invalid move. Try again."
         end
       else
-        puts "Invalid input format. Please use standard chess notation (e.g. 'e2 e4')."
+        puts "Invalid input format. Please use standard chess notation ('e2 e4' or 'O-O' for castling or 'O-O-O' for large castling)."
       end
     end
   end
@@ -310,6 +310,11 @@ module RubyChess
     true
   end
 
+   # Смена игрока
+  def switch_player
+    @current_player = @current_player == :white ? :black : :white
+  end
+
   # Перемещение фигуры
   def move_piece(from_pos, to_pos)
     from_row, from_col = from_pos
@@ -329,6 +334,23 @@ module RubyChess
     @move_history << { from: from_pos, to: to_pos, piece: piece }
   end
 
+   # Проверка, был ли король захвачен (упрощенная проверка на мат) ДАНЬКОВИЧ!!!
+  def king_captured?
+    king_found = { white: false, black: false }
+    
+    @board.each do |row|
+      row.each do |piece|
+        next if piece.nil?
+        
+        if piece[:type] == :king
+          king_found[piece[:color]] = true
+        end
+      end
+    end
+    
+    !king_found[:white] || !king_found[:black]
+  end
+
   # Превращение пешки
   def promote_pawn(pos)
     row, col = pos
@@ -346,10 +368,7 @@ module RubyChess
     @board[row][col][:type] = piece_type
   end
 
-  # Смена игрока
-  def switch_player
-    @current_player = @current_player == :white ? :black : :white
-  end
+ 
 
   # Проверка статуса игры (мат, пат, шах) ДАНЬКОВИЧ!!!
   def check_game_status
@@ -361,27 +380,12 @@ module RubyChess
     end
   end
 
-  # Проверка, был ли король захвачен (упрощенная проверка на мат) ДАНЬКОВИЧ!!!
-  def king_captured?
-    king_found = { white: false, black: false }
-    
-    @board.each do |row|
-      row.each do |piece|
-        next if piece.nil?
-        
-        if piece[:type] == :king
-          king_found[piece[:color]] = true
-        end
-      end
-    end
-    
-    !king_found[:white] || !king_found[:black]
-  end
+ 
 end
 
 # Запуск игры
 puts "Welcome to Ruby Chess!"
-puts "Enter moves in standard notation (e.g. 'e2 e4' or 'O-O' for castling)"
+puts "Enter moves in standard notation ('e2 e4' or 'O-O' for castling or 'O-O-O' for large castling)"
 puts "Type 'quit' to exit the game."
 
 game = ChessEngine.new
